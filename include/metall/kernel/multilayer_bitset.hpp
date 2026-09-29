@@ -245,7 +245,7 @@ class multilayer_bitset {
       std::size_t count = 0;
       uint64_t buf;
       while (ss >> buf) {
-        if (num_blocks <= count) {
+        if (num_blocks < count) {
           return false;
         }
         m_data.array[count] = static_cast<block_type>(buf);
