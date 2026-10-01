@@ -1,100 +1,100 @@
 # Build API Documentation, Examples, Tests, and Utilities
 
-Metall's repository contains example, test, benchmark, verification, and
-utility programs. This page describes how to configure and build them with
-CMake.
+Metall's repository includes examples, tests, benchmarks, verification programs,
+and utilities. This page explains how to configure and build them with CMake.
 
 ```bash
 git clone https://github.com/LLNL/metall
 cd metall
 cmake -S . -B build -DBUILD_EXAMPLE=ON
-cmake --build build
+cmake --build build # Or, 'make'
 
-# Optional: run tests if configured with -DBUILD_TEST=ON
+# Optional: configure with -DBUILD_TEST=ON, then run the tests
 ctest --test-dir build --output-on-failure
 
 # Optional: install headers and package files
-cmake --install build
+cmake --install build # Or, 'make install'
 
-# Optional: build API documentation if configured with -DBUILD_DOC=ON
+# Optional: configure with -DBUILD_DOC=ON, then build the API documentation
 cmake --build build --target build_doc
 ```
 
-## Required
+## Requirements
 
 - CMake 3.14 or newer.
-- A C++17 compiler.
-- GCC 8.1 or newer is the primary tested compiler for building the repository.
+- A C++17-compatible compiler. GCC 8.1 or newer is the primary tested
+  compiler for building the repository.
 
 ## Boost C++ Libraries
 
 Metall depends on Boost C++ Libraries 1.80 or newer.
-For regular builds, Metall's CMake configuration can automatically fetch a
-compatible Boost release when one is not already available.
+Metall's CMake configuration looks for a pre-installed Boost by using CMake's `find_package` mechanism first.
+If a pre-installed Boost is not found, CMake downloads and installs a proper version of the Boost release automatically.
 
-To use an existing Boost checkout or a custom Boost archive, set exactly one of
+To use an already downloaded but not installed Boost source code, use one of
 the following options:
 
-- `BOOST_INCLUDE_ROOT`: Legacy option. Use it to point at a directory that
-    contains Boost headers. The given path is forwarded to the build targets'
-    include path configuration.
-- `BOOST_SOURCE_DIR`: Path to an unpacked Boost source tree that already exists
-    on disk. Use this when you already have a Boost release that supports CMake.
-- `BOOST_FETCH_URL`: URL or file path for a Boost source archive to fetch.
-    Example:
-    [boost-1.88.0-cmake.tar.gz](https://github.com/boostorg/boost/releases/download/boost-1.88.0/boost-1.88.0-cmake.tar.gz).
-    The archive must contain a Boost release that supports CMake.
+- `BOOST_INCLUDE_ROOT`: Legacy option for a directory containing Boost
+  headers. The directory is added to the build targets' include paths.
+- `BOOST_SOURCE_DIR`: Path to an existing, unpacked Boost source tree that
+  supports CMake.
+- `BOOST_FETCH_URL`: URL or local file path to a Boost source archive.
+  For example:
+  [boost-1.88.0-cmake.tar.gz](https://github.com/boostorg/boost/releases/download/boost-1.88.0/boost-1.88.0-cmake.tar.gz).
+  The archive must contain a Boost release that supports CMake.
 
 ## Additional CMake Options
 
 In addition to standard CMake variables, Metall defines several project
-options. To list cached variables after configuration, run:
+options. To list the cached variables after configuration, run:
 
 ```bash
 cmake -LAH -S . -B build
 ```
 
-Here are some major options that you may want to use.
+Some commonly used options are:
 
 - `JUST_INSTALL_METALL_HEADER`: Install only Metall headers and package
-    configuration files. Default: `OFF`.
+  configuration files. Default: `OFF`.
 - `BUILD_DOC`: Build the API documentation using Doxygen. You can also run
-    Doxygen directly with `docs/Doxyfile.in`. Default: `OFF`.
+  Doxygen directly with `docs/Doxyfile.in`. Default: `OFF`.
 - `BUILD_UTILITY`: Build utility programs under `src/`. Default: `OFF`.
 - `BUILD_EXAMPLE`: Build examples under `example/`. Default: `OFF`.
 - `BUILD_BENCH`: Build benchmarks under `bench/`. Default: `OFF`.
 - `BUILD_TEST`: Build tests under `test/`. Google Test is downloaded
-    automatically unless `SKIP_DOWNLOAD_GTEST=ON`. Default: `OFF`.
+  automatically unless `SKIP_DOWNLOAD_GTEST=ON`. Default: `OFF`.
 - `BUILD_VERIFICATION`: Build verification programs under `verification/`.
-    Default: `OFF`.
+  Default: `OFF`.
 - `BUILD_C`: Build the C interface library and related examples. Default:
-    `OFF`.
-- `RUN_LARGE_SCALE_TEST`: Enable large-scale test coverage where supported by
-    the test suite. Default: `OFF`.
+  `OFF`.
+- `RUN_LARGE_SCALE_TEST`: Enable large-scale test coverage where supported
+  by the test suite. Default: `OFF`.
 
-## Build 'test' Directory without Internet Access (experimental mode)
+## Build the Test Directory Without Internet Access (Experimental)
 
-Step 1: On a machine with internet access, run CMake with
-`ONLY_DOWNLOAD_GTEST=ON` to download Google Test into the build tree.
+This workflow requires access to the internet for the initial Google Test
+download.
 
-Step 2: Move that build directory to the offline machine, clear the cache if
-needed, then reconfigure with `BUILD_TEST=ON` and `SKIP_DOWNLOAD_GTEST=ON`.
+1. On a machine with internet access, download Google Test into the build
+   tree:
 
-For example:
+   ```bash
+   cd metall
+   cmake -S . -B build -DBUILD_TEST=ON -DONLY_DOWNLOAD_GTEST=ON
+   ```
 
-```bash
-# On a machine with internet access
-cd metall
-cmake -S . -B build -DBUILD_TEST=ON -DONLY_DOWNLOAD_GTEST=ON
+2. Move the build directory to the offline machine. Remove the CMake cache if
+   necessary, then configure and build the tests:
 
-# On a machine without internet access
-cd metall
-rm -f build/CMakeCache.txt
-cmake -S . -B build -DBUILD_TEST=ON -DSKIP_DOWNLOAD_GTEST=ON
-```
+   ```bash
+   cd metall
+   rm -f build/CMakeCache.txt
+   cmake -S . -B build -DBUILD_TEST=ON -DSKIP_DOWNLOAD_GTEST=ON
+   cmake --build build
+   ```
 
-- `ONLY_DOWNLOAD_GTEST`: Experimental option that downloads Google Test
-    without building the rest of the test targets. Default: `OFF`. If
-    `BUILD_TEST` is `OFF`, this option has no effect.
-- `SKIP_DOWNLOAD_GTEST`: Experimental option that skips downloading Google
-    Test. Default: `OFF`. If `BUILD_TEST` is `OFF`, this option has no effect.
+- `ONLY_DOWNLOAD_GTEST`: Download Google Test without building the other test
+  targets. Default: `OFF`. This option has no effect when `BUILD_TEST` is
+  `OFF`.
+- `SKIP_DOWNLOAD_GTEST`: Skip downloading Google Test. Default: `OFF`. This
+  option has no effect when `BUILD_TEST` is `OFF`.
