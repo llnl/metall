@@ -45,13 +45,6 @@ Leveraging mmap allows Metall to provide high portability and stability on a ver
 Metall is designed to work with custom libraries that provide equivalent memory mapping capabilities as *mmap(2)*, such as [Privateer](https://github.com/LLNL/Privateer) and [Umap](https://github.com/LLNL/umap).
 However, on this page, we focus on the default mmap version of Metall's memory management.
 
-### Metall's Internal Architecture
-
-In this section, we provide more details of Metall's internal architecture.
-
-The figure below shows Metall's internal architecture.
-![metall_architecture](../img/metall_architecture.png "Metall's Internal Architecture")
-
 ## Application Heap Segment
 
 When a Metall manager ('metall::manager') object is constructed, Metall reserves a large contiguous region of virtual memory, often on the order of terabytes.
@@ -59,19 +52,16 @@ We call this reserved region the *application heap segment*.
 This reservation does not mean that physical memory is committed immediately.
 When applications request memory, Metall returns a proper location within the reserved virtual memory region to the application.
 
-When reserving the application heap segment, Metall also reserves space for its internal management data.
-This internal management data region is placed in front of the application heap segment.
-Metall reserves this region and the application heap segment as a single contiguous virtual memory region.
 
 ## Backing Files
 
-Metall's default backend uses multiple files to store application data.
-Splitting the datastore across multiple backing files can improve parallel I/O performance, especially for large workloads. New files are created and mapped on demand using the mmap(2) system call.
+Metall's default backend uses multiple files to store application data. Splitting the datastore
+across multiple backing files can improve parallel I/O performance, especially
+for large workloads. New files are created and mapped on demand.
 
 ## Segment and Chunk
 
-Metall divides the application heap segment into fixed-size chunks.
-The default chunk size is 2 MB.
+Metall divides that address range into chunks. The default chunk size is 2 MB.
 Each chunk can hold multiple small objects of the same internal allocation
 size. Objects larger than half a chunk are treated as large objects and occupy
 one or more contiguous chunks.
@@ -85,29 +75,31 @@ aggressively for deallocations at or above a chosen size. See
 
 ## Internal Allocation Size
 
-Like other standard allocators, Metall rounds small allocations (e.g., < 1MB) up to
+Like other high-performance allocators, Metall rounds small allocations up to
 internal size classes. These size classes are influenced by ideas from
 [SuperMalloc](https://dl.acm.org/doi/10.1145/2887746.2754178) and
 [jemalloc](http://jemalloc.net/), which helps bound internal fragmentation and
 keep size-class lookup fast.
-Specifically, the internal sizes are designed to keep internal fragmentations < 25%.
 
-Large objects (e.g., > 1MiB) are rounded up to the nearest power of 2.
-This may consume more virtual address space; however, thanks to the demand paging mechanism, wasted physical memory is almost negligible.
-On 4 KiB page size systems, the worst case internal fragmentation is 0.4%.
-Specifically, when allocating '1 MiB + 1 B' memory, Metall rounds up to 2 MiB to memory allocation size.
-If the application touches the last 1 B, a new page will be committed, i.e., 4 KiB of physical memory will be used.
-Therefore, 1 MiB + 4 KiB of physical memory will be used for the '1 MiB + 1 B' allocation,
-which corresponds to 0.4% of the allocated 1 MiB + 1 B memory.
+Large objects are rounded up differently. This may consume more virtual address
+space, but thanks to uncommitted pages it does not imply proportional physical
+memory usage.
 
 ## Management Data
 
 Metall uses three kinds of management data to manage allocations.
 
-- The *Bin Directory* stores non-full chunk IDs for each internal allocation
-  size, which makes small allocations fast.
-- The *Chunk Directory* tracks the state of each chunk and uses a compact
-  multi-layer bitset to find free slots efficiently.
-- The *Name Directory* is a simple key-value store that maps object names to their locations.
+The figure below shows Metall's internal architecture.
+![metall_architecture](../img/metall_architecture.png "Metall's Internal Architecture")
 
-Because these structures are updated frequently and involve fine-grained random accesses, Metall keeps them in DRAM while the datastore is open. On open, Metall reconstructs them from files, and on clean close or snapshot, it writes them back to files.
+- The Bin Directory stores non-full chunk IDs for each internal allocation
+  size, which makes small allocations fast.
+- The Chunk Directory tracks the state of each chunk and uses a compact
+  multi-layer bitset to find free slots efficiently.
+- The Name Directory is a simple key-value store that maps object names to
+  their locations.
+
+Because these structures are updated frequently and involve fine-grained random
+accesses, Metall keeps them in DRAM while the datastore is open. On open,
+Metall reconstructs them from files, and on clean close or snapshot it writes
+them back to persistent storage.
