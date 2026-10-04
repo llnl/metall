@@ -421,6 +421,9 @@ inline void *reserve_aligned_vm_region(const size_t alignment,
 
   void *const map_addr = os_mmap(nullptr, length + alignment, PROT_NONE,
                                  MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  if (!map_addr) {
+    return nullptr;
+  }
   void *const aligned_map_addr = reinterpret_cast<void *>(
       round_up(reinterpret_cast<size_t>(map_addr), alignment));
 
