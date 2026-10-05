@@ -47,14 +47,20 @@ Metall can use Boost in three ways:
 - Reuse Boost targets already created in the same CMake build, such as by a
   parent project's `FetchContent_MakeAvailable(Boost)` call.
 - Find an installed Boost CMake package with `find_package(Boost CONFIG)`.
-- When Metall is the top-level project and is building its own targets, fetch
-  the default Boost source archive automatically if no targets or installed
-  package are available.
+- When Metall is the top-level project, fetch the default Boost source archive
+  if no targets or installed package are available and header-only installation
+  is not enabled.
 
 When Metall is added with `FetchContent` or `add_subdirectory`, the parent
-project must make Boost available first. A full nested Metall build can also be
-given an explicit `BOOST_SOURCE_DIR` or `BOOST_FETCH_URL`; Metall will not
-automatically download its default Boost in that case.
+project can make Boost available before adding Metall. By default, Metall does
+not fetch Boost as a subproject. Set `METALL_FETCH_BOOST=ON` to fetch Boost if
+no suitable targets or installed package are available, even when no Metall
+build targets are enabled. The option also enables Boost's install rules. Run
+`cmake --build` before `cmake --install` so compiled Boost libraries are built
+before installation. This option cannot be combined with
+`JUST_INSTALL_METALL_HEADER` or its legacy alias, `INSTALL_HEADER_ONLY`. A
+nested build can also use `BOOST_SOURCE_DIR` or `BOOST_FETCH_URL` to select a
+specific Boost source.
 
 ### Use an Installed Boost
 
@@ -124,7 +130,7 @@ explicitly opts in to fetching that source:
 `JUST_INSTALL_METALL_HEADER` is an exception to the normal target behavior: it
 installs Metall's headers and package files without setting up Boost. Consumers
 using this option must arrange Boost themselves and link the necessary Boost
-targets directly.
+targets directly. It cannot be combined with `METALL_FETCH_BOOST`.
 
 With CMake older than 3.26, a build-tree `find_package(Metall)` export is not
 generated when Boost targets were fetched locally. Use `FetchContent` or
@@ -144,9 +150,13 @@ Some commonly used options are:
 
 - `JUST_INSTALL_METALL_HEADER`: Install only Metall headers and package
   configuration files. Boost setup is skipped; consumer projects must provide
-  and link Boost themselves. This is a backup option for users who want to
-  manage Boost manually or see issues related to Boost detection. Default:
-  `OFF`.
+  and link Boost themselves. Default: `OFF`.
+- `METALL_FETCH_BOOST`: Fetch Boost and enable its install rules when Boost is
+  not already available, even when Metall is a subproject or no Metall build
+  targets are enabled. Defaults to `ON` when Metall is the top-level project
+  and header-only mode is off; otherwise defaults to `OFF`. Build before
+  installing. Cannot be used with `JUST_INSTALL_METALL_HEADER` or
+  `INSTALL_HEADER_ONLY`.
 - `BUILD_DOC`: Build the API documentation using Doxygen. You can also run
   Doxygen directly with `docs/Doxyfile.in`. Default: `OFF`.
 - `BUILD_UTILITY`: Build utility programs under `src/`. Default: `OFF`.
