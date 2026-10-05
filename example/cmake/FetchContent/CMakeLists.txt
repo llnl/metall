@@ -10,9 +10,8 @@ FetchContent_MakeAvailable(Boost)
 
 FetchContent_Declare(
     Metall
-    SOURCE_DIR /home/ubuntu/metall/
-    # GIT_REPOSITORY https://github.com/LLNL/metall.git
-    # GIT_TAG feature/brush_up_cmake
+    GIT_REPOSITORY https://github.com/LLNL/metall.git
+    GIT_TAG master
 )
 FetchContent_MakeAvailable(Metall)
 
