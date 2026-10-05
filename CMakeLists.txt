@@ -35,6 +35,14 @@ project(Metall
     DESCRIPTION "A persistent memory allocator for data-centric analytics"
     HOMEPAGE_URL "https://github.com/LLNL/metall")
 
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    set(METALL_IS_TOP_LEVEL TRUE)
+else()
+    set(METALL_IS_TOP_LEVEL FALSE)
+endif()
+
+option(JUST_INSTALL_METALL_HEADER "Just install Metall header files (do not build anything)" OFF)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -54,9 +62,8 @@ target_link_libraries(${PROJECT_NAME}
     INTERFACE "$<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.1>>:stdc++fs>")
 include(metall_target_helpers)
 
-# List of Boost components Metall depends on. Defined here (before the config
-# file is generated) so MetallConfig.cmake can embed the same list and fetch a
-# matching Boost on its own when an installed consumer doesn't already have one.
+# List of Boost components Metall depends on. Defined before the package config
+# is generated so installed consumers can be required to provide these targets.
 set(METALL_BOOST_COMPONENTS json unordered interprocess container property_tree uuid graph)
 set(METALL_DEFAULT_BOOST_FETCH_URL
     "https://github.com/boostorg/boost/releases/download/boost-1.88.0/boost-1.88.0-cmake.tar.gz")
@@ -99,10 +106,6 @@ install(FILES
     "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME})
 
-# Make this project to also be used from a build directory
-export(EXPORT ${PROJECT_NAME}Targets
-    FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake"
-)
 # -------------------------------------------------------------------------------- #
 
 
@@ -111,7 +114,6 @@ export(EXPORT ${PROJECT_NAME}Targets
 # ----------
 # User configurable options
 # -------------------------------------------------------------------------------- #
-option(JUST_INSTALL_METALL_HEADER "Just install Metall header files (do not build anything)" OFF)
 option(BUILD_UTILITY "Build utility programs" OFF)
 option(BUILD_DOC "Build API documentation" OFF)
 option(BUILD_C "Build C examples and libraries" OFF)
@@ -139,8 +141,23 @@ option(BUILD_NUMA "Build programs that require the NUMA policy library (numa.h)"
 # -------------------------------------------------------------------------------- #
 
 # -------------------------------------------------------------------------------- #
+# Exit before building anything
+# Metall::Metall interface target is not linked to any dependent libraries at this stage.
+# -------------------------------------------------------------------------------- #
+if(INSTALL_HEADER_ONLY)
+    message(WARNING "INSTALL_HEADER_ONLY option has been replaced with JUST_INSTALL_METALL_HEADER.")
+    set(JUST_INSTALL_METALL_HEADER TRUE)
+endif()
+
+if(JUST_INSTALL_METALL_HEADER)
+    metall_export_build_tree_targets()
+    return()
+endif()
+# -------------------------------------------------------------------------------- #
+
+# -------------------------------------------------------------------------------- #
 # Dependency discovery and interface target setup
-# This section handles the discovery of dependencies like Threads and Boost,
+# This section handles the discovery of Threads,
 # and sets up the interface target for the project.
 # At this step, the project has not yet built any targets, but the necessary include directories and compile definitions are set up.
 # -------------------------------------------------------------------------------- #
@@ -153,65 +170,48 @@ foreach(compile_definition IN LISTS COMPILER_DEFS)
     target_compile_definitions(${PROJECT_NAME} INTERFACE ${compile_definition})
 endforeach()
 
-# Boost dependency setup
-# Actual Boost installation is conducted elsewhere; here we only set up the include directories for the interface target.
+# BOOST_INCLUDE_ROOT is the legacy option for callers that provide a plain
+# Boost include directory instead of CMake targets.
 if(BOOST_INCLUDE_ROOT)
-    # Legacy escape hatch for callers that want to supply Boost headers without
-    # relying on Boost's CMake package or imported targets.
     metall_add_build_interface_include_dirs(${PROJECT_NAME} ${BOOST_INCLUDE_ROOT})
 else()
-    # Prefer a transitive Boost dependency so build-tree consumers do not need
-    # to repeat include path setup after linking Metall::Metall. On newer CMake,
-    # BUILD_LOCAL_INTERFACE keeps that target-based dependency visible only to
-    # same-build consumers and strips it from both export() and install(EXPORT).
-    # Older CMake releases fall back to mirroring include paths directly.
-    find_package(Boost 1.80 QUIET)
-    set(metall_build_boost_targets "")
-    foreach(boost_component IN LISTS METALL_BOOST_COMPONENTS)
-        if(TARGET Boost::${boost_component})
-            list(APPEND metall_build_boost_targets Boost::${boost_component})
-        endif()
-    endforeach()
+    # A parent project may already have fetched Boost before adding Metall.
+    # Reuse those component targets instead of looking for or fetching Boost again.
+    metall_get_boost_targets(metall_boost_component_targets metall_boost_targets)
 
-    if(TARGET Boost::headers)
-        list(APPEND metall_build_boost_targets Boost::headers)
-    elseif(TARGET Boost::boost)
-        list(APPEND metall_build_boost_targets Boost::boost)
+    # If Boost was not added to this build, look for an installed Boost CMake
+    # package that provides Metall's required components.
+    if(NOT metall_boost_component_targets)
+        find_package(Boost 1.80 QUIET CONFIG COMPONENTS ${METALL_BOOST_COMPONENTS})
+        metall_get_boost_targets(metall_boost_component_targets metall_boost_targets)
     endif()
 
-    if(metall_build_boost_targets)
-        metall_attach_build_tree_boost_usage(${PROJECT_NAME} ${metall_build_boost_targets})
-    else()
-        metall_attach_build_tree_boost_usage(${PROJECT_NAME})
+    # Keep component libraries for Metall's own compiled targets. The headers
+    # target is also needed to pass include directories to Metall consumers.
+    set(BOOST_COMPONENT_TARGETS ${metall_boost_component_targets})
+    if(metall_boost_targets)
+        # Link Boost through Metall::Metall so consumers inherit its usage
+        # requirements. The helper keeps local Boost targets out of install exports.
+        metall_attach_build_tree_boost_usage(${PROJECT_NAME} ${metall_boost_targets})
     endif()
 endif()
+
 # -------------------------------------------------------------------------------- #
 
 # -------------------------------------------------------------------------------- #
-# Exit before building anything
+# Exit if there is nothing to build.
 # At this point, Metall::Metall interface target is fully configured with its dependencies and compile definitions.
-# However, Boost installation is not conducted at this stage; it is expected to be handled separately.
-# -------------------------------------------------------------------------------- #
-if(INSTALL_HEADER_ONLY)
-    message(WARNING "INSTALL_HEADER_ONLY option has been replaced with JUST_INSTALL_METALL_HEADER.")
-    set(JUST_INSTALL_METALL_HEADER TRUE)
-endif()
-
-if(JUST_INSTALL_METALL_HEADER)
-    return()
-endif()
-# -------------------------------------------------------------------------------- #
-
-# -------------------------------------------------------------------------------- #
-# Exit if there is nothing to build
-# This means that if another project fetches Metall as a dependency, but none of the build options are enabled,
-# Boost is not installed by Metall.
 # -------------------------------------------------------------------------------- #
 if(NOT (BUILD_UTILITY OR BUILD_C OR BUILD_EXAMPLE OR BUILD_BENCH OR BUILD_TEST OR BUILD_VERIFICATION OR RUN_BUILD_AND_TEST_WITH_CI OR BUILD_DOC))
+    if(NOT METALL_IS_TOP_LEVEL AND NOT BOOST_INCLUDE_ROOT AND NOT metall_boost_component_targets)
+        message(FATAL_ERROR
+            "Boost ${METALL_BOOST_COMPONENTS} is required when Metall is added as a subproject. "
+            "Make Boost targets available in the parent project before adding Metall.")
+    endif()
+    metall_export_build_tree_targets()
     return()
 endif()
 # -------------------------------------------------------------------------------- #
-
 
 # -------------------------------------------------------------------------------- #
 # Only downloading Google Test
@@ -312,25 +312,25 @@ else()
         set(metall_boost_fetch_args URL ${BOOST_FETCH_URL})
     endif()
 
-    fetch_boost(${metall_boost_fetch_args} COMPONENTS ${BOOST_COMPS})
+    if(NOT BOOST_COMPONENT_TARGETS)
+        if(METALL_IS_TOP_LEVEL OR BOOST_SOURCE_DIR OR BOOST_FETCH_URL)
+            fetch_boost(${metall_boost_fetch_args} COMPONENTS ${BOOST_COMPS})
+        else()
+            message(FATAL_ERROR
+                "Boost ${BOOST_COMPS} is required to build Metall. When Metall is a subproject, "
+                "make Boost available in the parent project or set BOOST_SOURCE_DIR/BOOST_FETCH_URL.")
+        endif()
+    endif()
 
-    # Same-build consumers of Metall::Metall, including metall_c, should see
-    # the full Boost component usage requirements without local targets leaking
-    # into export() or install(EXPORT) metadata.
-    if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.26")
-        metall_attach_build_tree_boost_usage(${PROJECT_NAME} ${BOOST_LIBS})
-    elseif(TARGET Boost::headers)
-        metall_attach_build_tree_boost_usage(${PROJECT_NAME} Boost::headers ${BOOST_LIBS})
-    elseif(TARGET Boost::boost)
-        metall_attach_build_tree_boost_usage(${PROJECT_NAME} Boost::boost ${BOOST_LIBS})
-    else()
-        metall_attach_build_tree_boost_usage(${PROJECT_NAME})
+    metall_get_boost_targets(metall_boost_component_targets metall_boost_targets)
+    if(metall_boost_targets)
+        metall_attach_build_tree_boost_usage(${PROJECT_NAME} ${metall_boost_targets})
     endif()
 
     # Component targets often carry the real include directories and shared-lib
     # compile definitions, while Boost::headers may only be a thin umbrella.
     # Collect those include directories for export-safe library builds.
-    metall_collect_target_interface_property(boost_component_include_dirs INTERFACE_INCLUDE_DIRECTORIES ${BOOST_LIBS})
+    metall_collect_target_interface_property(boost_component_include_dirs INTERFACE_INCLUDE_DIRECTORIES ${BOOST_COMPONENT_TARGETS})
     list(APPEND METALL_BOOST_HEADER_INCLUDE_DIRS ${boost_component_include_dirs})
     list(REMOVE_DUPLICATES METALL_BOOST_HEADER_INCLUDE_DIRS)
 
@@ -346,9 +346,13 @@ else()
     # Boost targets in export metadata. Convert those local targets to linker
     # file paths, then add explicit build dependencies so Boost is still built
     # first inside this tree.
-    metall_convert_local_targets_to_link_items(METALL_BOOST_LINK_ITEMS ${BOOST_LIBS})
-    metall_collect_local_target_dependencies(METALL_BOOST_LOCAL_TARGET_DEPENDENCIES ${BOOST_LIBS})
+    metall_convert_local_targets_to_link_items(METALL_BOOST_LINK_ITEMS ${BOOST_COMPONENT_TARGETS})
+    metall_collect_local_target_dependencies(METALL_BOOST_LOCAL_TARGET_DEPENDENCIES ${BOOST_COMPONENT_TARGETS})
 endif()
+
+# Make this project available from its build directory where the CMake version
+# can safely export the current Boost target dependencies.
+metall_export_build_tree_targets()
 
 # -------------------------------------------------------------------------------- #
 # Add executable functions

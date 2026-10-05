@@ -31,16 +31,21 @@ function(common_setup_for_metall_executable name)
   else()
     if(metall_target_type MATCHES "_LIBRARY$")
       # Libraries that are exported later must not leak local Boost
-      # targets into export metadata. Reuse Metall's same-build usage
-      # requirements for compilation, but feed the linker only concrete
-      # export-safe items for the compiled Boost libraries.
+      # targets into export metadata. Apply their compile usage requirements
+      # privately, and feed the linker only concrete export-safe items for the
+      # compiled Boost libraries.
       target_link_libraries(${name} PRIVATE ${PROJECT_NAME})
+      if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.26")
+        metall_link_build_local_targets(${name} PRIVATE ${BOOST_COMPONENT_TARGETS})
+      else()
+        metall_mirror_target_usage_to_build_interface(${name} ${BOOST_COMPONENT_TARGETS})
+      endif()
       target_link_libraries(${name} PRIVATE ${METALL_BOOST_LINK_ITEMS})
       if(METALL_BOOST_LOCAL_TARGET_DEPENDENCIES)
         add_dependencies(${name} ${METALL_BOOST_LOCAL_TARGET_DEPENDENCIES})
       endif()
     else()
-      target_link_libraries(${name} PRIVATE ${BOOST_LIBS})
+      target_link_libraries(${name} PRIVATE ${BOOST_COMPONENT_TARGETS})
     endif()
   endif()
 

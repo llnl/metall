@@ -7,16 +7,19 @@ To have CMake download, build, and link Metall instead, see the
 [FetchContent example](../FetchContent).
 
 The [CMakeLists.txt](CMakeLists.txt) in this directory:
-- Calls `find_package(Metall REQUIRED)`. `MetallConfig.cmake` resolves (and,
-  if needed, fetches) a suitable Boost on its own, so no separate Boost setup
-  is required here.
+- Calls `find_package(Metall REQUIRED)`. Boost must already be available as
+  targets in the consumer's build or through an installed Boost CMake package;
+  Metall does not fetch Boost in this mode. `Metall::Metall` carries Boost's
+  usage requirements to `cpp_example`.
 - Builds `cpp_example`, which links `Metall::Metall` (the C++ API).
 - Builds `c_example`, which links `Metall::metall_c` (the C API), if the
   library was installed (i.e. Metall was built with `-DBUILD_C=ON`).
 
 ## 1. Install Metall
 
-Metall must be installed before this example can find it.
+Metall must be installed before this example can find it. Boost 1.80 or newer
+must also be installed and discoverable by CMake; this example does not fetch
+Boost itself.
 
 ### Option A: Install manually
 

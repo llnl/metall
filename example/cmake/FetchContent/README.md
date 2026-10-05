@@ -9,11 +9,14 @@ To link an *already installed* Metall package instead, see the
 
 The [CMakeLists.txt](CMakeLists.txt) in this directory:
 - Fetches the Metall source with `FetchContent` and adds it as a subdirectory.
-- Metall's own build resolves (and, if needed, fetches) a suitable Boost, so
-  no separate Boost setup is required here.
+- Metall resolves or fetches Boost and propagates its usage requirements
+  through `Metall::Metall`.
 - Builds `cpp_example`, which links `Metall::Metall` (the C++ API).
 - Optionally builds `c_example`, which links `Metall::metall_c` (the C API),
   when `BUILD_C` is enabled.
+
+To use `JUST_INSTALL_METALL_HEADER` and provide Boost from a separate CMake
+project, see the [header-only FetchContent example](../FetchContentHeaderOnly).
 
 ## Build
 
