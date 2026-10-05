@@ -191,6 +191,16 @@ if(JUST_INSTALL_METALL_HEADER)
 endif()
 # -------------------------------------------------------------------------------- #
 
+# -------------------------------------------------------------------------------- #
+# Exit if there is nothing to build
+# This means that if another project fetches Metall as a dependency, but none of the build options are enabled,
+# Boost is not installed by Metall.
+# -------------------------------------------------------------------------------- #
+if(NOT (BUILD_UTILITY OR BUILD_C OR BUILD_EXAMPLE OR BUILD_BENCH OR BUILD_TEST OR BUILD_VERIFICATION OR RUN_BUILD_AND_TEST_WITH_CI OR BUILD_DOC))
+    return()
+endif()
+# -------------------------------------------------------------------------------- #
+
 
 # -------------------------------------------------------------------------------- #
 # Only downloading Google Test
@@ -213,7 +223,7 @@ endif()
 
 
 # -------------------------------------------------------------------------------- #
-# Set up for building executables
+# Set up for building executables in this project
 # -------------------------------------------------------------------------------- #
 
 # Requirements for GCC
