@@ -3,13 +3,11 @@ include(FetchContent)
 
 project(myproject LANGUAGES C CXX)
 
-# Download and setup Metall.
-# Metall's own CMakeLists.txt resolves (and, if needed, fetches) a suitable
-# Boost on its own, so no separate Boost setup is required here.
-if(NOT BUILD_C)
-    # Just install Metall header files and avoid building executables in the repository.
-    set(JUST_INSTALL_METALL_HEADER TRUE)
-endif()
+# To install Boost, FetchContent can be used as shown below.
+# If Boost is already installed on the system, this step can be skipped.
+FetchContent_Declare(Boost URL "https://github.com/boostorg/boost/releases/download/boost-1.88.0/boost-1.88.0-cmake.tar.gz")
+FetchContent_MakeAvailable(Boost)
+
 FetchContent_Declare(
     Metall
     GIT_REPOSITORY https://github.com/LLNL/metall.git
@@ -20,12 +18,11 @@ FetchContent_MakeAvailable(Metall)
 # ---------------------------------------- #
 #  For using Metall CXX API
 # ---------------------------------------- #
-
 add_executable(cpp_example ../src/cpp_example.cpp)
 
-# Link Metall
-# Although target_link_libraries() is used, no library file (e.g., *.a file) is linked.
-# Only include path and transitive usage requirements will be set here.
+# Link Metall. Metall::Metall is an INTERFACE target, so no Metall binary is
+# linked. It adds Metall's include path, C++17 requirement, and Boost usage
+# requirements.
 target_link_libraries(cpp_example PRIVATE Metall::Metall)
 
 # ---------------------------------------- #
