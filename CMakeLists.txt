@@ -31,9 +31,9 @@ endif()
 # Metall general configuration
 # -------------------------------------------------------------------------------- #
 project(Metall
-        VERSION 0.35
-        DESCRIPTION "A persistent memory allocator for data-centric analytics"
-        HOMEPAGE_URL "https://github.com/LLNL/metall")
+    VERSION 0.35
+    DESCRIPTION "A persistent memory allocator for data-centric analytics"
+    HOMEPAGE_URL "https://github.com/LLNL/metall")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -41,6 +41,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # ----- Setting up a INTERFACE library to install header files ----- #
 include(GNUInstallDirs)
+
 add_library(${PROJECT_NAME} INTERFACE)
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 target_include_directories(${PROJECT_NAME}
@@ -128,21 +129,6 @@ set(BOOST_FETCH_URL CACHE STRING "URL or file path to an archived Boost source. 
 # We keep this option for using old Boost versions. This option will be removed in the future.
 set(BOOST_INCLUDE_ROOT "" CACHE STRING "Path to Boost include directory. Specified value is passed to target_include_directories().")
 
-set(metall_boost_source_options "")
-foreach(boost_source_option IN ITEMS BOOST_SOURCE_DIR BOOST_FETCH_URL BOOST_INCLUDE_ROOT)
-    if(DEFINED ${boost_source_option} AND NOT "${${boost_source_option}}" STREQUAL "")
-        list(APPEND metall_boost_source_options ${boost_source_option})
-    endif()
-endforeach()
-
-list(LENGTH metall_boost_source_options metall_boost_source_option_count)
-if(metall_boost_source_option_count GREATER 1)
-    list(JOIN metall_boost_source_options ", " metall_boost_source_options_string)
-    message(FATAL_ERROR
-        "Specify only one of BOOST_SOURCE_DIR, BOOST_FETCH_URL, or BOOST_INCLUDE_ROOT. "
-        "Currently set: ${metall_boost_source_options_string}")
-endif()
-
 # ---------- Experimental options ---------- #
 set(UMAP_ROOT "" CACHE PATH "UMap installed root directory")
 set(PRIVATEER_ROOT "" CACHE PATH "Privateer installed root directory")
@@ -150,14 +136,25 @@ set(PRIVATEER_ROOT "" CACHE PATH "Privateer installed root directory")
 option(ONLY_DOWNLOAD_GTEST "Only downloading Google Test" OFF)
 option(SKIP_DOWNLOAD_GTEST "Skip downloading Google Test" OFF)
 option(BUILD_NUMA "Build programs that require the NUMA policy library (numa.h)" OFF)
+# -------------------------------------------------------------------------------- #
 
-# Lightweight dependency discovery so the interface target is usable from
-# add_subdirectory()/FetchContent() without forcing a full standalone build.
+# -------------------------------------------------------------------------------- #
+# Dependency discovery and interface target setup
+# This section handles the discovery of dependencies like Threads and Boost,
+# and sets up the interface target for the project.
+# At this step, the project has not yet built any targets, but the necessary include directories and compile definitions are set up.
+# -------------------------------------------------------------------------------- #
 find_package(Threads QUIET)
 if(TARGET Threads::Threads)
     target_link_libraries(${PROJECT_NAME} INTERFACE Threads::Threads)
 endif()
 
+foreach(compile_definition IN LISTS COMPILER_DEFS)
+    target_compile_definitions(${PROJECT_NAME} INTERFACE ${compile_definition})
+endforeach()
+
+# Boost dependency setup
+# Actual Boost installation is conducted elsewhere; here we only set up the include directories for the interface target.
 if(BOOST_INCLUDE_ROOT)
     # Legacy escape hatch for callers that want to supply Boost headers without
     # relying on Boost's CMake package or imported targets.
@@ -177,12 +174,23 @@ else()
         metall_attach_build_tree_boost_usage(${PROJECT_NAME})
     endif()
 endif()
-
-foreach(compile_definition IN LISTS COMPILER_DEFS)
-    target_compile_definitions(${PROJECT_NAME} INTERFACE ${compile_definition})
-endforeach()
+# -------------------------------------------------------------------------------- #
 
 # -------------------------------------------------------------------------------- #
+# Exit before building anything
+# At this point, Metall::Metall interface target is fully configured with its dependencies and compile definitions.
+# However, Boost installation is not conducted at this stage; it is expected to be handled separately.
+# -------------------------------------------------------------------------------- #
+if(INSTALL_HEADER_ONLY)
+    message(WARNING "INSTALL_HEADER_ONLY option has been replaced with JUST_INSTALL_METALL_HEADER.")
+    set(JUST_INSTALL_METALL_HEADER TRUE)
+endif()
+
+if(JUST_INSTALL_METALL_HEADER)
+    return()
+endif()
+# -------------------------------------------------------------------------------- #
+
 
 # -------------------------------------------------------------------------------- #
 # Only downloading Google Test
@@ -193,25 +201,6 @@ if(ONLY_DOWNLOAD_GTEST)
 endif()
 # -------------------------------------------------------------------------------- #
 
-# -------------------------------------------------------------------------------- #
-# Exit before building anything
-# -------------------------------------------------------------------------------- #
-if(INSTALL_HEADER_ONLY)
-    message(WARNING "INSTALL_HEADER_ONLY option has been replaced with JUST_INSTALL_METALL_HEADER.")
-endif()
-
-if(JUST_INSTALL_METALL_HEADER)
-    return()
-endif()
-# -------------------------------------------------------------------------------- #
-
-# -------------------------------------------------------------------------------- #
-# Exit CMake if there is nothing to build
-# -------------------------------------------------------------------------------- #
-if(NOT (BUILD_UTILITY OR BUILD_C OR BUILD_EXAMPLE OR BUILD_BENCH OR BUILD_TEST OR BUILD_VERIFICATION OR RUN_BUILD_AND_TEST_WITH_CI OR BUILD_DOC))
-    return()
-endif()
-# -------------------------------------------------------------------------------- #
 
 # -------------------------------------------------------------------------------- #
 # Document (Doxygen)
@@ -221,6 +210,7 @@ if(BUILD_DOC)
     build_doc()
 endif()
 # -------------------------------------------------------------------------------- #
+
 
 # -------------------------------------------------------------------------------- #
 # Set up for building executables
@@ -264,6 +254,22 @@ if(PRIVATEER_ROOT)
 endif()
 
 # ---------- Boost ---------- #
+# Check for multiple Boost source options and warn if more than one is specified.
+set(metall_boost_source_options "")
+foreach(boost_source_option IN ITEMS BOOST_SOURCE_DIR BOOST_FETCH_URL BOOST_INCLUDE_ROOT)
+    if(DEFINED ${boost_source_option} AND NOT "${${boost_source_option}}" STREQUAL "")
+        list(APPEND metall_boost_source_options ${boost_source_option})
+    endif()
+endforeach()
+
+list(LENGTH metall_boost_source_options metall_boost_source_option_count)
+if(metall_boost_source_option_count GREATER 1)
+    list(JOIN metall_boost_source_options ", " metall_boost_source_options_string)
+    message(WARNING
+        "Specify only one of BOOST_SOURCE_DIR, BOOST_FETCH_URL, or BOOST_INCLUDE_ROOT. "
+        "Currently set: ${metall_boost_source_options_string}. Undefined behavior may occur.")
+endif()
+
 set(METALL_BOOST_HEADER_INCLUDE_DIRS "")
 set(METALL_BOOST_LINK_ITEMS "")
 set(METALL_BOOST_LOCAL_TARGET_DEPENDENCIES "")

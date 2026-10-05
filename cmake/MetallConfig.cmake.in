@@ -21,26 +21,29 @@ find_dependency(Threads REQUIRED)
 set(METALL_BOOST_COMPONENTS @METALL_BOOST_COMPONENTS@)
 set(METALL_DEFAULT_BOOST_FETCH_URL "@METALL_DEFAULT_BOOST_FETCH_URL@")
 
-find_package(Boost 1.80 QUIET)
-if(NOT Boost_FOUND)
-    # No suitable Boost is installed on this system; fetch one that matches
-    # what Metall needs instead of failing consumers outright.
-    include(FetchContent)
-    set(BOOST_INCLUDE_LIBRARIES ${METALL_BOOST_COMPONENTS})
-    if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.24")
-        FetchContent_Declare(Boost
+if(NOT @JUST_INSTALL_METALL_HEADER@)
+	find_package(Boost 1.80 QUIET)
+	if(NOT Boost_FOUND)
+		# No suitable Boost is installed on this system; fetch one that matches
+		# what Metall needs instead of failing consumers outright.
+		include(FetchContent)
+		set(BOOST_INCLUDE_LIBRARIES ${METALL_BOOST_COMPONENTS})
+		if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.24")
+			FetchContent_Declare(Boost
 			URL ${METALL_DEFAULT_BOOST_FETCH_URL}
-            FIND_PACKAGE_ARGS 1.80)
-    else()
-        FetchContent_Declare(Boost
+				FIND_PACKAGE_ARGS 1.80)
+		else()
+			FetchContent_Declare(Boost
 			URL ${METALL_DEFAULT_BOOST_FETCH_URL})
-    endif()
-    FetchContent_MakeAvailable(Boost)
+		endif()
+		FetchContent_MakeAvailable(Boost)
+	endif()
 endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
 
-if (TARGET @PROJECT_NAME@::@PROJECT_NAME@)
+
+if (TARGET @PROJECT_NAME@::@PROJECT_NAME@ AND NOT @JUST_INSTALL_METALL_HEADER@)
 	set(_metall_boost_targets "")
 	foreach(_metall_boost_comp IN LISTS METALL_BOOST_COMPONENTS)
 		if(TARGET Boost::${_metall_boost_comp})
