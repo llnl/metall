@@ -166,10 +166,21 @@ else()
     # same-build consumers and strips it from both export() and install(EXPORT).
     # Older CMake releases fall back to mirroring include paths directly.
     find_package(Boost 1.80 QUIET)
+    set(metall_build_boost_targets "")
+    foreach(boost_component IN LISTS METALL_BOOST_COMPONENTS)
+        if(TARGET Boost::${boost_component})
+            list(APPEND metall_build_boost_targets Boost::${boost_component})
+        endif()
+    endforeach()
+
     if(TARGET Boost::headers)
-        metall_attach_build_tree_boost_usage(${PROJECT_NAME} Boost::headers)
+        list(APPEND metall_build_boost_targets Boost::headers)
     elseif(TARGET Boost::boost)
-        metall_attach_build_tree_boost_usage(${PROJECT_NAME} Boost::boost)
+        list(APPEND metall_build_boost_targets Boost::boost)
+    endif()
+
+    if(metall_build_boost_targets)
+        metall_attach_build_tree_boost_usage(${PROJECT_NAME} ${metall_build_boost_targets})
     else()
         metall_attach_build_tree_boost_usage(${PROJECT_NAME})
     endif()
