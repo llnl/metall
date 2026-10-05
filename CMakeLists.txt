@@ -387,6 +387,7 @@ else()
     endif()
 
     metall_get_boost_targets(metall_boost_component_targets metall_boost_targets)
+    set(METALL_BOOST_INSTALL_LINK_ITEMS ${metall_boost_component_targets})
     if(metall_boost_targets)
         metall_attach_build_tree_boost_usage(${PROJECT_NAME} ${metall_boost_targets})
     endif()

@@ -40,7 +40,9 @@ function(common_setup_for_metall_executable name)
       else()
         metall_mirror_target_usage_to_build_interface(${name} ${BOOST_COMPONENT_TARGETS})
       endif()
-      target_link_libraries(${name} PRIVATE ${METALL_BOOST_LINK_ITEMS})
+      target_link_libraries(${name} PRIVATE
+        "$<BUILD_INTERFACE:${METALL_BOOST_LINK_ITEMS}>"
+        "$<INSTALL_INTERFACE:${METALL_BOOST_INSTALL_LINK_ITEMS}>")
       if(METALL_BOOST_LOCAL_TARGET_DEPENDENCIES)
         add_dependencies(${name} ${METALL_BOOST_LOCAL_TARGET_DEPENDENCIES})
       endif()
