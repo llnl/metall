@@ -4,7 +4,7 @@
 
 ## TSC Responsibilities
 The TSC will be responsible for the following:
-* leading overall technical direction of YGM
+* leading overall technical direction of Metall
 * organizing subproject efforts
 * implementing policies and project norms concerning contributing to the project outlined in the CONTRIBUTING.md and CODE_OF_CONDUCT.md files
 * selecting project maintainers
