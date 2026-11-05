@@ -1,6 +1,6 @@
 Repo:
   # Required: organization or user that owns the repo on the destination forge
-  dest_org: MetallData
+  dest_org: metall
 
   # Required: name of the destination repository
   dest_name: metall
