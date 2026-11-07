@@ -1,0 +1,113 @@
+###############################################################################
+# Dane Machine Jobs
+###############################################################################
+
+.job_on_dane:
+  variables:
+    METALL_TEST_DIR_BASE: "/tmp/metall-ci-test-dir"
+    METALL_BUILD_DIR_BASE: "/dev/shm/metall-ci-build-dir"
+    METALL_BUILD_TYPES: "Debug"
+    METALL_LIMIT_MAKE_PARALLELS: "4"
+    COMPILER: "gcc"
+    COMPILER_VERSION: "13.3.1-magic"
+    CMAKE_VERSION: "3.30.5"
+
+test_boost-1.92.0:
+  extends: .job_on_dane
+  variables:
+    TEST_TYPE: "build_and_test"
+    BOOST_PATH: "/p/lustre1/salta/boost/boost-1.92.0-cmake.tar.gz"
+    BOOST_OPTION: "BOOST_FETCH_URL"
+
+test_boost-1.91.0-1:
+  extends: .job_on_dane
+  variables:
+    TEST_TYPE: "build_and_test"
+    BOOST_PATH: "/p/lustre1/salta/boost/boost-1.91.0-1-cmake.tar.gz"
+    BOOST_OPTION: "BOOST_FETCH_URL"
+
+test_boost-1.90.0:
+  extends: .job_on_dane
+  variables:
+    TEST_TYPE: "build_and_test"
+    BOOST_PATH: "/p/lustre1/salta/boost/boost-1.90.0-cmake.tar.gz"
+    BOOST_OPTION: "BOOST_FETCH_URL"
+
+test_boost-1.89.0:
+  extends: .job_on_dane
+  variables:
+    TEST_TYPE: "build_and_test"
+    BOOST_PATH: "/p/lustre1/salta/boost/boost-1.89.0-cmake.tar.gz"
+    BOOST_OPTION: "BOOST_FETCH_URL"
+
+test_boost-1.88.0:
+  extends: .job_on_dane
+  variables:
+    TEST_TYPE: "build_and_test"
+    BOOST_PATH: "/p/lustre1/salta/boost/boost-1.88.0-cmake.tar.gz"
+    BOOST_OPTION: "BOOST_FETCH_URL"
+
+test_boost-1.87.0:
+  extends: .job_on_dane
+  variables:
+    TEST_TYPE: "build_and_test"
+    BOOST_PATH: "/p/lustre1/salta/boost/boost-1.87.0-cmake.tar.gz"
+    BOOST_OPTION: "BOOST_FETCH_URL"
+
+test_boost-1.86.0:
+  extends: .job_on_dane
+  variables:
+    TEST_TYPE: "build_and_test"
+    BOOST_PATH: "/p/lustre1/salta/boost/boost-1.86.0-cmake.tar.gz"
+    BOOST_OPTION: "BOOST_FETCH_URL"
+
+test_boost-1.85.0:
+  extends: .job_on_dane
+  variables:
+    TEST_TYPE: "build_and_test"
+    BOOST_PATH: "/p/lustre1/salta/boost/boost-1.85.0-cmake.tar.gz"
+    BOOST_OPTION: "BOOST_FETCH_URL"
+
+test_boost-1.84.0:
+  extends: .job_on_dane
+  variables:
+    TEST_TYPE: "build_and_test"
+    BOOST_PATH: "/p/lustre1/salta/boost/boost-1.84.0.tar.gz"
+    BOOST_OPTION: "BOOST_INCLUDE_ROOT"
+    BOOST_UNCOMPRESS: true
+
+test_boost-1.83.0:
+  extends: .job_on_dane
+  variables:
+    TEST_TYPE: "build_and_test"
+    BOOST_PATH: "/p/lustre1/salta/boost/boost-1.83.0.tar.gz"
+    BOOST_UNCOMPRESS: true
+
+test_boost-1.82.0:
+  extends: .job_on_dane
+  variables:
+    TEST_TYPE: "build_and_test"
+    BOOST_PATH: "/p/lustre1/salta/boost/boost-1.82.0.tar.gz"
+    BOOST_UNCOMPRESS: true
+
+test_boost-1.81.0:
+  extends: .job_on_dane
+  variables:
+    TEST_TYPE: "build_and_test"
+    BOOST_PATH: "/p/lustre1/salta/boost/boost-1.81.0.tar.gz"
+    BOOST_UNCOMPRESS: true
+
+test_boost-1.80.0:
+  extends: .job_on_dane
+  variables:
+    TEST_TYPE: "build_and_test"
+    BOOST_PATH: "/p/lustre1/salta/boost/boost-1.80.0.tar.gz"
+    BOOST_UNCOMPRESS: true
+
+cmake-consumer-smoke:
+  extends: .job_on_dane
+  variables:
+    TEST_TYPE: "consumer_smoke"
+    BOOST_PATH: "/p/lustre1/salta/boost/boost-1.92.0.tar.gz"
+    BOOST_PATH: "/p/lustre1/salta/boost/boost-1.92.0-cmake.tar.gz"
+    BOOST_OPTION: "BOOST_FETCH_URL"
