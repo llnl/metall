@@ -1,7 +1,21 @@
 #!/bin/bash
 set -e
 
+if [[ -z "${COMPILER}" ]]; then
+  echo "Error: This script expect COMPILER env variable to be set."
+  exit 1
+fi
+if [[ -z "${COMPILER_VERSION}" ]]; then
+  echo "Error: This script expect COMPILER_VERSION env variable to be set."
+  exit 1
+fi
 module load ${COMPILER}/${COMPILER_VERSION}
+
+if [[ -z "${CMAKE_VERSION}" ]]; then
+  echo "Error: This script expect CMAKE_VERSION env variable to be set."
+  exit 1
+fi
+module load cmake/${CMAKE_VERSION}
 
 if [[ -z "${CI_JOB_ID}" ]]; then
   echo "Error: This script expect CI_JOB_ID env variable to be set."

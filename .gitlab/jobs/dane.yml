@@ -10,6 +10,7 @@
     METALL_LIMIT_MAKE_PARALLELS: "4"
     COMPILER: "gcc"
     COMPILER_VERSION: "13.3.1-magic"
+    CMAKE_VERSION: "3.30.5"
 
 test_boost-1.92.0:
   extends: .job_on_dane
