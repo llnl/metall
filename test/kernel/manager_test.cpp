@@ -189,6 +189,30 @@ TEST(ManagerTest, CreateAndOpenModes) {
   }
 }
 
+TEST(ManagerTest, OpenWithCapacity) {
+  constexpr std::size_t capacity = 1UL << 30UL;
+  manager_type::remove(dir_path());
+  {
+    manager_type manager(metall::create_only, dir_path(), capacity);
+    ASSERT_TRUE(manager.check_sanity());
+    ASSERT_NE(manager.construct<int>("int")(10), nullptr);
+  }
+  {
+    manager_type manager(metall::open_only, dir_path(), capacity);
+    ASSERT_TRUE(manager.check_sanity());
+    ASSERT_FALSE(manager.read_only());
+    auto ret = manager.find<int>("int");
+    ASSERT_NE(ret.first, nullptr);
+    ASSERT_EQ(*ret.first, 10);
+    ASSERT_TRUE(manager.destroy<int>("int"));
+  }
+  {
+    manager_type manager(metall::open_only, dir_path(), capacity);
+    ASSERT_TRUE(manager.check_sanity());
+    ASSERT_EQ(manager.find<int>("int").first, nullptr);
+  }
+}
+
 TEST(ManagerTest, ProperlyClosedMarkBug) {
   manager_type::remove(dir_path());
 
