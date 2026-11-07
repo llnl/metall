@@ -4,6 +4,7 @@
 
 .job_on_dane:
   variables:
+    METALL_TEST_DIR: "/dev/shm/metall-test-dir"
     METALL_LIMIT_MAKE_PARALLELS: "4"
     COMPILER: "gcc"
     COMPILER_VERSION: "13.3.1-magic"
