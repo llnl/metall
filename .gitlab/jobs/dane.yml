@@ -9,56 +9,56 @@
     COMPILER: "gcc"
     COMPILER_VERSION: "13.3.1-magic"
 
-test_boost-1.92.0-cmake:
+test_boost-1.92.0:
   extends: .job_on_dane
   variables:
     TEST_TYPE: "build_and_test"
     BOOST_PATH: "/p/lustre1/salta/boost/boost-1.92.0-cmake.tar.gz"
     BOOST_OPTION: "BOOST_FETCH_URL"
 
-test_1.91.0-1-cmake:
+test_boost-1.91.0-1:
   extends: .job_on_dane
   variables:
     TEST_TYPE: "build_and_test"
     BOOST_PATH: "/p/lustre1/salta/boost/boost-1.91.0-1-cmake.tar.gz"
     BOOST_OPTION: "BOOST_FETCH_URL"
 
-test_boost-1.90.0-cmake:
+test_boost-1.90.0:
   extends: .job_on_dane
   variables:
     TEST_TYPE: "build_and_test"
     BOOST_PATH: "/p/lustre1/salta/boost/boost-1.90.0-cmake.tar.gz"
     BOOST_OPTION: "BOOST_FETCH_URL"
 
-test_boost-1.89.0-cmake:
+test_boost-1.89.0:
   extends: .job_on_dane
   variables:
     TEST_TYPE: "build_and_test"
     BOOST_PATH: "/p/lustre1/salta/boost/boost-1.89.0-cmake.tar.gz"
     BOOST_OPTION: "BOOST_FETCH_URL"
 
-test_boost-1.88.0-cmake:
+test_boost-1.88.0:
   extends: .job_on_dane
   variables:
     TEST_TYPE: "build_and_test"
     BOOST_PATH: "/p/lustre1/salta/boost/boost-1.88.0-cmake.tar.gz"
     BOOST_OPTION: "BOOST_FETCH_URL"
 
-test_boost-1.87.0-cmake:
+test_boost-1.87.0:
   extends: .job_on_dane
   variables:
     TEST_TYPE: "build_and_test"
     BOOST_PATH: "/p/lustre1/salta/boost/boost-1.87.0-cmake.tar.gz"
     BOOST_OPTION: "BOOST_FETCH_URL"
 
-test_boost-1.86.0-cmake:
+test_boost-1.86.0:
   extends: .job_on_dane
   variables:
     TEST_TYPE: "build_and_test"
     BOOST_PATH: "/p/lustre1/salta/boost/boost-1.86.0-cmake.tar.gz"
     BOOST_OPTION: "BOOST_FETCH_URL"
 
-test_boost-1.85.0-cmake:
+test_boost-1.85.0:
   extends: .job_on_dane
   variables:
     TEST_TYPE: "build_and_test"
