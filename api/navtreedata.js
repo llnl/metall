@@ -24,52 +24,12 @@
 */
 var NAVTREE =
 [
-  [ "Metall", "index.html", [
-    [ "Namespaces", "namespaces.html", [
-      [ "Namespace List", "namespaces.html", "namespaces_dup" ],
-      [ "Namespace Members", "namespacemembers.html", [
-        [ "All", "namespacemembers.html", null ],
-        [ "Functions", "namespacemembers_func.html", null ],
-        [ "Typedefs", "namespacemembers_type.html", null ]
-      ] ]
-    ] ],
-    [ "Classes", "annotated.html", [
-      [ "Class List", "annotated.html", "annotated_dup" ],
-      [ "Class Index", "classes.html", null ],
-      [ "Class Hierarchy", "hierarchy.html", "hierarchy" ],
-      [ "Class Members", "functions.html", [
-        [ "All", "functions.html", "functions_dup" ],
-        [ "Functions", "functions_func.html", "functions_func" ],
-        [ "Variables", "functions_vars.html", null ],
-        [ "Typedefs", "functions_type.html", null ],
-        [ "Enumerations", "functions_enum.html", null ],
-        [ "Related Symbols", "functions_rela.html", null ]
-      ] ]
-    ] ],
-    [ "Files", "files.html", [
-      [ "File List", "files.html", "files_dup" ],
-      [ "File Members", "globals.html", [
-        [ "All", "globals.html", null ],
-        [ "Functions", "globals_func.html", null ],
-        [ "Variables", "globals_vars.html", null ],
-        [ "Typedefs", "globals_type.html", null ],
-        [ "Enumerations", "globals_enum.html", null ],
-        [ "Enumerator", "globals_eval.html", null ],
-        [ "Macros", "globals_defs.html", null ]
-      ] ]
-    ] ],
-    [ "Examples", "examples.html", "examples" ]
-  ] ]
+  [ "Metall", "index.html", ]
 ];
 
 var NAVTREEINDEX =
 [
-"adjacency__list_8hpp.html",
-"classmetall_1_1container_1_1concurrent__map.html#a370c1110d8744f56fed40d034e2dd79b",
-"classmetall_1_1container_1_1string__key__store.html#a927921630ead4b009913d9504bdc8165",
-"classmetall_1_1json_1_1value.html#aa958b600fffaadc2972f198db05d0b9c",
-"defs_8hpp.html#a2a2daca754838e410b92c0f17fa96adc",
-"namespacemetall_1_1json.html#a0216c48c4b31bb967e01a34145810ae4"
+"index.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
