@@ -3,6 +3,8 @@
 ## Collaboration Work with the ECP ExaGraph Project
 ### miniVite
 
+**Could be obsolete already**
+
 miniVite is a proxy app that implements a single phase of Louvain method in distributed memory for graph community detection.
 
 miniVite has a mode that uses Metall to store a graph in persistent memory to reuse the data and reduce the overall analytics workload.
@@ -12,11 +14,15 @@ see the details located [here](https://github.com/ECP-ExaGraph/miniVite/tree/met
 
 ### Ripples
 
+**Could be obsolete already**
+
 Ripples is a software framework to study the Influence Maximization problem developed at Pacific Northwest National Laboratory.
 
 To build Ripples with Metall, see the details located [here](./ripples.md).
 
 ## HavoqGT
+
+**Could be obsolete already**
 
 [HavoqGT](https://github.com/LLNL/havoqgt) (Highly Asynchronous Visitor Queue Graph Toolkit) is a framework for expressing asynchronous vertex-centric graph algorithms.
 
@@ -29,3 +35,9 @@ saltatlas contains a distributed NNDescent algorithm implementation (DNND).
 DNND is designed to work with Metall to store its main data structure, which requires a heavy construction time, in persistent memory to avoid redundant data ingestion tasks.
 
 To use saltatlas DNND with Metall, see its [README](https://github.com/LLNL/saltatlas).
+
+
+## Clustering at Massive Scale (ClaMS)
+
+[ClaMS](https://github.com/LLNL/ClaMS) is a distributed memory HPC clustering pipeline.
+ClaMS uses Metall to exchange data among programs in the pipeline.

@@ -8,8 +8,10 @@
 
 #include <functional>
 
-static_assert(BOOST_VERSION >= 108100, "Unsupported Boost version");
 #include <boost/unordered/unordered_flat_set.hpp>
+#if defined(BOOST_VERSION) && BOOST_VERSION < 108400
+#warning "Boost 1.84.0 or higher supports fancy pointers"
+#endif
 
 #include <metall/metall.hpp>
 

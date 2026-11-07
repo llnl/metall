@@ -190,3 +190,18 @@ TEST(MultilayerBitsetTest, RandomSetAndReset2) {
   // 4 layers
   RandomSetAndResetHelper2(64 * 64 * 64 + 1);
 }
+TEST(MultilayerBitsetTest, DeserializeRejectsTooManyBlocks) {
+  const std::size_t num_bits = 512;  // more than one block, so the array is used
+
+  metall::kernel::multilayer_bitset source;
+  source.allocate(num_bits);
+  const std::string serialized = source.serialize(num_bits);
+
+  metall::kernel::multilayer_bitset target;
+  target.allocate(num_bits);
+  ASSERT_TRUE(target.deserialize(num_bits, serialized));
+  ASSERT_FALSE(target.deserialize(num_bits, serialized + " 0"));
+
+  target.free(num_bits);
+  source.free(num_bits);
+}
